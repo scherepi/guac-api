@@ -35,6 +35,10 @@ app.get("/api/journal/:id", (req, res) => {
         fs.readFile('./data/journal.txt', 'utf8', (err, data) => {
             if (err) { console.error(err); res.status(500).send("Error reading journal file"); return; }
             entry = data.split("\n")[req.params.id];
+            if (entry === "") {
+                res.status(404).send("Journal entry not found");
+                return;
+            }
             res.status(200).send(entry);
         });
     } catch (err) {
