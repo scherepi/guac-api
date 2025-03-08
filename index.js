@@ -8,8 +8,22 @@ app.use(express.json()); // Add this line to parse JSON request bodies
 
 let journal = [];
 
+function djbHash(str) {
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) + hash) ^ str.charCodeAt(i);
+    }
+    return hash >>> 0;
+}
+
 app.get("/api/hello", (req, res) => {
     res.send("Hello World");
+});
+
+app.get("/api/djb/:code", (req, res) => {
+    console.log("Received request for djb hash of " + req.params.code)
+    const hash = djbHash(req.params.code);
+    res.status(200).send(hash.toString());
 });
 
 app.get("/api/journal", (req, res) => {
