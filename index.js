@@ -20,6 +20,17 @@ app.get("/api/hello", (req, res) => {
     res.send("Hello World");
 });
 
+app.get("/", (req, res) => {
+    try {
+        fs.readFile('./data/intro.html', 'utf8', (err, data) => {
+            if (err) { console.error(err); res.status(500).send("Error reading intro file"); return; }
+            res.status(200).send(data);
+        });
+    } catch (err) {
+        console.error(err);
+    }
+});
+
 app.get("/api/djb/:code", (req, res) => {
     console.log("Received request for djb hash of " + req.params.code)
     const hash = djbHash(req.params.code);
