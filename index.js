@@ -24,7 +24,7 @@ app.get("/api/journal", (req, res) => {
 app.post("/api/journal", (req, res) => {
     console.log("Received request to add journal entry")
     try {
-        const newEntry = req.body.entry;
+        const newEntry = req.body;
         fs.appendFileSync(dataPath + 'journal.txt', newEntry + "\n");
         console.log("added new journal entry")
         res.status(200).send("Journal entry added successfully");
