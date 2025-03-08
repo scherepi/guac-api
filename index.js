@@ -33,11 +33,11 @@ app.get("/api/journal", (req, res) => {
         fs.readFile('./data/journal.txt', 'utf8', (err, data) => {
             if (err) { console.error(err); res.status(500).send("Error reading journal file"); return; }
             entry = data.split("\n")[data.split("\n").length - 2]; // Adjusted to get the last entry correctly
-            res.status(200).send(entry);
+            res.status(200).send(entry + "\n");
             console.log("returned latest journal entry")
         });
     } catch (err) {
-        res.status(500).send("Error reading journal file");
+        res.status(500).send("Error reading journal file\n");
         return;
     }
 });
@@ -70,10 +70,10 @@ app.post("/api/journal", (req, res) => {
         const newEntry = `${now.toISOString()} - ${entryBody}`;
         fs.appendFileSync(dataPath + 'journal.txt', newEntry + "\n");
         console.log("added new journal entry")
-        res.status(200).send("Journal entry added successfully");
+        res.status(200).send("Journal entry added successfully\n");
     } catch (err) {
         console.error(err);
-        res.status(500).send("Error writing to journal file");
+        res.status(500).send("Error writing to journal file\n");
     }
 });
 
