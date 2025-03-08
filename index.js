@@ -9,8 +9,8 @@ app.get("/api/hello", (req, res) => {
     res.send("Hello World");
 });
 
-app.get("/api/wilder", (req, res) => {
-    res.send()
+app.get("/api/xfil", (req, res) => {
+    console.log(req);
 });
 
 app.listen(port, () => {
