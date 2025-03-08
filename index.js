@@ -32,7 +32,7 @@ app.post("/api/journal", (req, res) => {
         console.error(err);
         res.status(500).send("Error writing to journal file");
     }
-}
+});
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
