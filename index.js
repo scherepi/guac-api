@@ -31,6 +31,17 @@ app.get("/", (req, res) => {
     }
 });
 
+app.get("/endpoints", (req, res) => {
+    try {
+        fs.readFile('./data/endpoints.html', 'utf8', (err, data) => {
+            if (err) { console.error(err); res.status(500).send("Error reading endpoints file"); return; }
+            res.status(200).send(data);
+        });
+    } catch (err) {
+        console.error(err);
+    }
+});
+
 app.get("/api/djb/:code", (req, res) => {
     console.log("Received request for djb hash of " + req.params.code)
     const hash = djbHash(req.params.code);

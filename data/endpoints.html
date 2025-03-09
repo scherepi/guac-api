@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>endpoints</title>
+    </head>
+    <body>
+        <h1>Endpoint List:</h1>
+        <ul>
+            <li><strong>GET</strong> <a href="/">/</a> - front-end intro</li>
+            <li><strong>GET</strong> <a href="/api/hello">/api/hello</a> - returns a simple hello world :)</li>
+            <li><strong>GET</strong> <a href="/api/djb/test">/api/djb/CODE</a> - returns a DJB hash for the code provided</li>
+            <li><strong>GET</strong> <a href="/api/journal">/api/journal</a> - returns the latest journal entry</li>
+            <li><strong>GET</strong> <a href="/api/journal/2">/api/journal/[index]</a> - returns the journal entry with the index provided</li>
+            <li><strong>POST</strong> /api/journal/ - takes application/json data, writes to the journal whatever's in the "entry" field</li>
+        </ul>
+    </body>
+</html>
