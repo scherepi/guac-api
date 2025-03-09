@@ -31,7 +31,7 @@ app.get("/", (req, res) => {
     }
 });
 
-app.get("/endpoints", (req, res) => {
+app.get("/docs/endpoints", (req, res) => {
     try {
         fs.readFile('./data/endpoints.html', 'utf8', (err, data) => {
             if (err) { console.error(err); res.status(500).send("Error reading endpoints file"); return; }
@@ -84,13 +84,13 @@ app.get("/api/journal/:id", (req, res) => {
     }
 });
 
-app.post("/api/journal", (req, res) => {
+app.post("/api/journal/:id", (req, res) => {
     const now = new Date(Date.now());
     console.log("Received request to add journal entry")
     try {
         const entryBody = req.body.entry; // Ensure the request body contains an 'entry' field
         const newEntry = `${now.toISOString()} - ${entryBody}`;
-        fs.appendFileSync(dataPath + 'journal.txt', newEntry + "\n");
+        fs.writeFileSync(dataPath + id + '.txt', newEntry + "\n");
         console.log("added new journal entry")
         res.status(200).send("Journal entry added successfully\n");
     } catch (err) {
