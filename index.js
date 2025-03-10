@@ -119,6 +119,14 @@ app.post("/api/journal/register/:user", (req, res) => {
 
 app.post("/api/journal/:user/", (req, res) => {
     const now = new Date(Date.now()); // Grab the timestamp first
+    if (!req.is('application/json')) {
+        res.status(400).send("Request must be JSON\n");
+        return;
+    }
+    if (!req.body.entry) {
+        res.status(400).send("Request body must contain an 'entry' field\n");
+        return;
+    }
     console.log("Received request to add journal entry")
     // Check for whether the user exists on the system first
     fs.stat(`./data/${req.params.user}.txt`, (err, stats) => {
