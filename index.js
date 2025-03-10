@@ -84,7 +84,7 @@ app.get("/api/journal/:user", (req, res) => {
     let entry = "";
     try {
         fs.readFile(`./data/${req.params.user}.txt`, 'utf8', (err, data) => {
-            if (err) { console.error(err); res.status(500).send("Error reading journal file"); return; }
+            if (err) { console.error(err); res.status(500).send("Error reading journal file\n"); return; }
             entry = data.split("\n")[req.params.id];
             if (entry === "") {
                 res.status(404).send("Journal entry not found");
