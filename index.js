@@ -131,7 +131,7 @@ app.post("/api/journal/:user/", (req, res) => {
     try {
         const entryBody = req.body.entry; // Ensure the request body contains an 'entry' field
         const newEntry = `${now.toISOString()} - ${entryBody}`;
-        fs.writeFileSync(`./data/${req.params.user}.txt`, newEntry + "\n");
+        fs.appendFileSync(`./data/${req.params.user}.txt`, newEntry + "\n");
         console.log("added new journal entry for user " + req.params.user);
         res.status(200).send("Journal entry added successfully\n");
     } catch (err) {
