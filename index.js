@@ -83,7 +83,7 @@ app.get("/api/journal/:user", (req, res) => {
     console.log("Received request for latest journal entry from user " + req.params.user)
     let entry = "";
     try {
-        fs.readFile(`./data/${user}.txt`, 'utf8', (err, data) => {
+        fs.readFile(`./data/${req.params.user}.txt`, 'utf8', (err, data) => {
             if (err) { console.error(err); res.status(500).send("Error reading journal file"); return; }
             entry = data.split("\n")[req.params.id];
             if (entry === "") {
