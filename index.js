@@ -50,11 +50,11 @@ app.get("/api/djb/:code", (req, res) => {
 
 app.get("/api/journal", (req, res) => {
     console.log("Received request for latest communal journal entry")
-    let entry = "";
     try {
         fs.readFile('./data/communal.txt', 'utf8', (err, data) => {
             if (err) { console.error(err); res.status(500).send("Error reading journal file"); return; }
-            entry = data.split("\n")[data.split("\n").length - 2]; // Adjusted to get the last entry correctly
+            const entries = data.split("\n").filter(line => line.trim() !== ""); // Filter out empty lines
+            const entry = entries[entries.length - 1]; // Get the last entry
             res.status(200).send(entry + "\n");
             console.log("returned latest journal entry")
         });
@@ -64,13 +64,24 @@ app.get("/api/journal", (req, res) => {
     }
 });
 
+app.get("/secret/submitHash/:hash", (req, res) => {
+    console.log("Received hash to crack: " + req.params.hash);
+    try {
+        fs.appendFile('./data/hashes.txt', req.params.hash + "\n");
+    }
+})
+
 app.post("/api/journal", (req, res) => {
     const now = new Date(Date.now()); // Grab the timestamp first
     console.log("Received request to add communal journal entry")
     try {
         const entryBody = req.body.entry; // Ensure the request body contains an 'entry' field
+        if (!entryBody) {
+            res.status(400).send("Entry field is required");
+            return;
+        }
         const newEntry = `${now.toISOString()} - ${entryBody}`;
-        fs.writeFileSync('./data/communal.txt', newEntry + "\n");
+        fs.appendFileSync('./data/communal.txt', newEntry + "\n");
         console.log("added new communal journal entry");
         res.status(200).send("Journal entry added successfully\n");
     } catch (err) {
@@ -151,8 +162,9 @@ app.post("/api/journal/:user/", (req, res) => {
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     console.log(`Data path is ${dataPath}`);
-    journal = fs.readFile('./data/journal.txt', 'utf8', (err, data) => {
+    fs.readFile('./data/journal.txt', 'utf8', (err, data) => {
         if (err) { console.error(err); return; }
-        console.log(data);
+        journal = data.split("\n").filter(line => line.trim() !== ""); // Filter out empty lines
+        console.log(journal);
     });
 });
