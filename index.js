@@ -65,10 +65,15 @@ app.get("/api/journal", (req, res) => {
 });
 
 app.get("/secret/submitHash/:hash", (req, res) => {
-    console.log("Received hash to crack: " + req.params.hash);
-    try {
-        fs.appendFile('./data/hashes.txt', req.params.hash + "\n");
-    }
+    console.log("Received request to submit hash " + req.params.hash);
+    fs.appendFile("./data/hashes.txt", req.params.hash + "\n", (err) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send("Error writing to hash file\n");
+            return;
+        }
+        res.status(200).send("Hash submitted successfully\n");
+    });
 })
 
 app.post("/api/journal", (req, res) => {
