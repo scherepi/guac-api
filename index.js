@@ -96,12 +96,30 @@ app.post("/api/journal", (req, res) => {
 })
 
 app.get("/api/journal/:user", (req, res) => {
-    console.log("Received request for latest journal entry from user " + req.params.user)
+    // 
+    console.log("Received request for latest journal entry from user " + req.params.user + ".");
+    // If the request contains an index, we can return that specific entry. Otherwise, we'll just return the latest.
+    if (req.body.index) {
+        try {
+            fs.readFile(`./data/${req.params.user}`, 'utf8', (err, data) => {
+                if (err) { console.error(err); res.status(500).send("Error reading journal file\n"); return; }
+                const entries = data.split("\n");
+                if (entries.length < req.body.index) {
+                    res.status(404).send("A journal entry with that index was not found.\n");
+                    return;
+                }
+                res.status(200).send(entries[req.body.index]);
+            })
+        } catch (err) {
+            res.status(404).send("Something went gravely wrong...\n");
+            return;
+        }
+    }
     let entry = "";
     try {
         fs.readFile(`./data/${req.params.user}.txt`, 'utf8', (err, data) => {
             if (err) { console.error(err); res.status(500).send("Error reading journal file\n"); return; }
-            entry = data.split("\n")[req.params.id];
+            entry = data.split("\n")[data.split("\n").length - 1]; // Get the last entry
             if (entry === "") {
                 res.status(404).send("Journal entry not found");
                 return;
@@ -163,6 +181,19 @@ app.post("/api/journal/:user/", (req, res) => {
         res.status(500).send("Error writing to journal file\n");
     }
 });
+
+app.post("/api/admin/clearCommunal", (req, res) => {
+    console.log("Received request to clear communal journal");
+    const password = req.body.password;
+    const currentPassword = fs.readFileSync('./data/currentPassword.txt', 'utf8');
+    // we don't really have to be THAT secure about the password, it's okay to store it in plaintext because there's only one admin endpoint that uses it
+    if (password !== currentPassword) {
+        res.status(401).send("Not Authorized.\n");
+        return;
+    }
+    fs.writeFileSync('./data/communal.txt', "");
+    res.status(200).send("Command executed. Communal journal cleared.\n");
+})
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
