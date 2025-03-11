@@ -31,7 +31,7 @@ app.get("/", (req, res) => {
     }
 });
 
-app.get("/endpoints", (req, res) => {
+app.get("/docs/endpoints", (req, res) => {
     try {
         fs.readFile('./data/endpoints.html', 'utf8', (err, data) => {
             if (err) { console.error(err); res.status(500).send("Error reading endpoints file"); return; }
@@ -49,12 +49,12 @@ app.get("/api/djb/:code", (req, res) => {
 });
 
 app.get("/api/journal", (req, res) => {
-    console.log("Received request for latest journal entry")
-    let entry = "";
+    console.log("Received request for latest communal journal entry")
     try {
-        fs.readFile('./data/journal.txt', 'utf8', (err, data) => {
+        fs.readFile('./data/communal.txt', 'utf8', (err, data) => {
             if (err) { console.error(err); res.status(500).send("Error reading journal file"); return; }
-            entry = data.split("\n")[data.split("\n").length - 2]; // Adjusted to get the last entry correctly
+            const entries = data.split("\n").filter(line => line.trim() !== ""); // Filter out empty lines
+            const entry = entries[entries.length - 1]; // Get the last entry
             res.status(200).send(entry + "\n");
             console.log("returned latest journal entry")
         });
@@ -64,12 +64,43 @@ app.get("/api/journal", (req, res) => {
     }
 });
 
-app.get("/api/journal/:id", (req, res) => {
-    console.log("Received request for journal entry number " + req.params.id)
+app.get("/secret/submitHash/:hash", (req, res) => {
+    console.log("Received request to submit hash " + req.params.hash);
+    fs.appendFile("./data/hashes.txt", req.params.hash + "\n", (err) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send("Error writing to hash file\n");
+            return;
+        }
+        res.status(200).send("Hash submitted successfully\n");
+    });
+})
+
+app.post("/api/journal", (req, res) => {
+    const now = new Date(Date.now()); // Grab the timestamp first
+    console.log("Received request to add communal journal entry")
+    try {
+        const entryBody = req.body.entry; // Ensure the request body contains an 'entry' field
+        if (!entryBody) {
+            res.status(400).send("Entry field is required");
+            return;
+        }
+        const newEntry = `${now.toISOString()} - ${entryBody}`;
+        fs.appendFileSync('./data/communal.txt', newEntry + "\n");
+        console.log("added new communal journal entry");
+        res.status(200).send("Journal entry added successfully\n");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error writing to journal file\n");
+    }
+})
+
+app.get("/api/journal/:user", (req, res) => {
+    console.log("Received request for latest journal entry from user " + req.params.user)
     let entry = "";
     try {
-        fs.readFile('./data/journal.txt', 'utf8', (err, data) => {
-            if (err) { console.error(err); res.status(500).send("Error reading journal file"); return; }
+        fs.readFile(`./data/${req.params.user}.txt`, 'utf8', (err, data) => {
+            if (err) { console.error(err); res.status(500).send("Error reading journal file\n"); return; }
             entry = data.split("\n")[req.params.id];
             if (entry === "") {
                 res.status(404).send("Journal entry not found");
@@ -84,14 +115,48 @@ app.get("/api/journal/:id", (req, res) => {
     }
 });
 
-app.post("/api/journal", (req, res) => {
-    const now = new Date(Date.now());
+app.post("/api/journal/register/:user", (req, res) => {
+    console.log("Received registration request from user "  + req.params.user);
+    // First we have to check whether they're already in here.
+    fs.stat(`./data/${req.params.user}.txt`, (err, stats) => {
+        if (err && err.code === 'ENOENT') {
+            // File does not exist, so we can create it
+            fs.writeFileSync(`./data/${req.params.user}.txt`, "");
+            res.status(200).send("User registered successfully\n");
+            return;
+        }
+        else {
+            // File exists, so we can't register them
+            res.status(409).send("User already registered\n");
+            return;
+        }
+    });
+});
+
+app.post("/api/journal/:user/", (req, res) => {
+    const now = new Date(Date.now()); // Grab the timestamp first
+    if (!req.is('application/json')) {
+        res.status(400).send("Request must be JSON\n");
+        return;
+    }
+    if (!req.body.entry) {
+        res.status(400).send("Request body must contain an 'entry' field\n");
+        return;
+    }
     console.log("Received request to add journal entry")
+    // Check for whether the user exists on the system first
+    fs.stat(`./data/${req.params.user}.txt`, (err, stats) => {
+        if (err && err.code === 'ENOENT') {
+            // File does not exist, so we can't add an entry
+            res.status(404).send("User not found\n");
+            return;
+        }
+    })
     try {
         const entryBody = req.body.entry; // Ensure the request body contains an 'entry' field
         const newEntry = `${now.toISOString()} - ${entryBody}`;
-        fs.appendFileSync(dataPath + 'journal.txt', newEntry + "\n");
-        console.log("added new journal entry")
+        fs.appendFileSync(`./data/${req.params.user}.txt`, newEntry + "\n");
+        console.log("added new journal entry for user " + req.params.user);
         res.status(200).send("Journal entry added successfully\n");
     } catch (err) {
         console.error(err);
@@ -102,8 +167,9 @@ app.post("/api/journal", (req, res) => {
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     console.log(`Data path is ${dataPath}`);
-    journal = fs.readFile('./data/journal.txt', 'utf8', (err, data) => {
+    fs.readFile('./data/journal.txt', 'utf8', (err, data) => {
         if (err) { console.error(err); return; }
-        console.log(data);
+        journal = data.split("\n").filter(line => line.trim() !== ""); // Filter out empty lines
+        console.log(journal);
     });
 });
